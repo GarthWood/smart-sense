@@ -1,5 +1,8 @@
 #pragma once
 
+/**
+ A general purpose UDP client
+*/
 class UDPClient {
 
 public:
@@ -12,8 +15,13 @@ public:
   }
 
   ~UDPClient() {
+    free(_inputBuffer);
+    free(_outputBuffer);
   }
 
+  /**
+   Connects to the Wifi and initiates the UDP connection
+  */
   bool connect(int localPort, const char* ssid, const char* password) {
 
     bool result = false;
@@ -27,17 +35,25 @@ public:
     return result;
   }
 
-  const char* getData() {
+  /**
+   Returns any data in the buffer
+  */
+  bool getData(char*& data) {
 
-    memset(_inputBuffer, 0, _bufferSize * sizeof(byte));
-    
-    if (_udp.parsePacket()) {
-      _udp.read(_inputBuffer, _bufferSize);
+    bool hasData = _udp.parsePacket() != 0;
+
+    if (hasData) {
+        memset(_inputBuffer, 0, _bufferSize * sizeof(byte));
+        _udp.read(_inputBuffer, _bufferSize);
+        data = (char*)_inputBuffer;
     }
 
-    return (const char*)_inputBuffer;
+    return hasData;
   }
 
+  /**
+   Sends data to the server
+  */
   void sendData(const char* packet) {
 
     memset(_outputBuffer, 0, _bufferSize * sizeof(byte));
@@ -48,17 +64,14 @@ public:
     _udp.endPacket();
   }
 
-private:
-
-  bool connect(const char* ssid, const char* password) {
-    WiFi.begin(ssid, password);
-  
-    while (WiFi.status() != WL_CONNECTED) {
-      delay(100);
-    }
-
-    return true;
+  /**
+   Returns if the Wifi is connected
+  */
+  bool isConnected() {
+    return (WiFi.status() == WL_CONNECTED);
   }
+
+private:
 
   String _host;
 
@@ -72,5 +85,18 @@ private:
   int _bufferSize;
 
   int _serverPort;
-};
 
+  /**
+   Establishes the connection to the Wifi
+  */
+  bool connect(const char* ssid, const char* password) {
+
+    WiFi.begin(ssid, password);
+
+    while (WiFi.status() != WL_CONNECTED) {
+      delay(100);
+    }
+
+    return true;
+  }
+};
