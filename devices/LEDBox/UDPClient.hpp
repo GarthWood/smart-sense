@@ -1,6 +1,9 @@
 #pragma once
 
+#include "WiFiManager.hpp"
+
 #define LOCAL_PORT        2390
+#define BUFFER_SIZE       128
 
 /**
  A general purpose UDP client
@@ -8,21 +11,22 @@
 class UDPClient {
 
 public:
-    UDPClient(const char* apName, const char* host, int serverPort, int bufferSize) {
-
-        _inputBuffer = (byte*)malloc(bufferSize * sizeof(byte));
-        _outputBuffer = (byte*)malloc(bufferSize * sizeof(byte));
-        _ap = apName;
-        _host = host;
-        _serverPort = serverPort;
-        _bufferSize = bufferSize;
-
-        _wifi.setDebugOutput(false);
+    UDPClient() {
     }
 
     ~UDPClient() {
-        free(_inputBuffer);
-        free(_outputBuffer);
+    }
+
+    /**
+     Initialises the client
+    */
+    void init(const char* apName, const char* host, int serverPort) {
+
+        _ap = apName;
+        _host = host;
+        _serverPort = serverPort;
+
+        _wifi.setDebugOutput(false);
     }
 
     /**
@@ -48,17 +52,17 @@ public:
     /**
      Returns any data in the buffer
     */
-    bool getData(char*& data) {
+    int getData(char*& data) {
 
-        bool hasData = (_udp.parsePacket() != 0);
+        int packetLength = _udp.parsePacket();
 
-        if (hasData) {
-            memset(_inputBuffer, 0, _bufferSize * sizeof(byte));
-            _udp.read(_inputBuffer, _bufferSize);
+        if (packetLength > 0) {
+            memset(_inputBuffer, 0, BUFFER_SIZE * sizeof(byte));
+            _udp.read(_inputBuffer, BUFFER_SIZE);
             data = (char*)_inputBuffer;
         }
 
-        return hasData;
+        return packetLength;
     }
 
     /**
@@ -66,11 +70,11 @@ public:
     */
     void sendData(const char* packet) {
 
-        memset(_outputBuffer, 0, _bufferSize * sizeof(byte));
+        memset(_outputBuffer, 0, BUFFER_SIZE * sizeof(byte));
         memcpy(_outputBuffer, packet, strlen(packet) + 1);
 
         _udp.beginPacket(_ip, _serverPort);
-        _udp.write(_outputBuffer, _bufferSize);
+        _udp.write(_outputBuffer, BUFFER_SIZE);
         _udp.endPacket();
     }
 
@@ -92,10 +96,8 @@ private:
 
     IPAddress _ip;
 
-    byte *_inputBuffer,
-         *_outputBuffer;
-
-    int _bufferSize;
+    byte _inputBuffer[BUFFER_SIZE],
+         _outputBuffer[BUFFER_SIZE];
 
     int _serverPort;
 
