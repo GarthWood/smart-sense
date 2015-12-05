@@ -1,31 +1,33 @@
 
 #include <ESP8266WiFi.h>
+#include <EEPROM.h>
+#include <ESP8266WebServer.h>
+#include <DNSServer.h>
+#include <WiFiManager.h>   // https://github.com/tzapu/WiFiManager
 #include <WiFiUdp.h>
 #include "Box.hpp"
 
-#define SSID              "***"
-#define PASSWORD          "***"
+#define AP_NAME           "LEDBox"
 #define HOST_NAME         "10.4.108.22"
 #define LOCAL_PORT        2390
-#define STATUS_PIN        15
 
 #define LED               15
 
-Box box(STATUS_PIN, HOST_NAME, 33333, 48);
+Box box(AP_NAME, HOST_NAME, 33333, 48);
 
 void setup() {
 
-  Serial.begin(115200);
+    Serial.begin(115200);
 
-  pinMode(LED, OUTPUT);
+    pinMode(LED, OUTPUT);
 
-  if (box.connect(LOCAL_PORT, SSID, PASSWORD)) {
-    Serial.println("Connected");
-  } else {
-    Serial.println("Could not establish connection");
-  }
+    if (box.connect(LOCAL_PORT)) {
+        Serial.println("Connected");
+    } else {
+        Serial.println("Could not establish connection");
+    }
 
-  box.sendData("test");
+    box.sendData("test");
 }
 
 void loop() {

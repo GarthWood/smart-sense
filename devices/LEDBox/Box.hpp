@@ -3,6 +3,7 @@
 #include "UDPClient.hpp"
 
 #define STATUS_INTERVAL           1000
+#define STATUS_LED_PIN            5
 
 /**
  A general container for any device
@@ -17,25 +18,20 @@ class Box {
 
     struct ConnectionDetails {
         int localPort;
-        String ssid;
-        String password;
 
-        void save(int localPort, const char* ssid, const char* password) {
-
+        void save(int localPort) {
             this->localPort = localPort;
-            this->ssid = ssid;
-            this->password = password;
         }
     };
 
 public:
-    Box(int statusPin, const char* host, int serverPort, int bufferSize = 48)
-    : _statusPin(statusPin)
+    Box(const char* apName, const char* host, int serverPort, int bufferSize = 48)
+    : _statusPin(STATUS_LED_PIN)
     , _state(None)
     , _statusTimer(0L)
     , _statusState(false) {
 
-        _client = new UDPClient(host, serverPort, bufferSize);
+        _client = new UDPClient(apName, host, serverPort, bufferSize);
     }
 
     ~Box() {
@@ -45,15 +41,15 @@ public:
     /**
      Connects to the Wifi, initiates the UDP connection and sets up the box
     */
-    bool connect(int localPort, const char* ssid, const char* password) {
+    bool connect(int localPort) {
 
         _state = Connecting;
 
-        _connectionDetails.save(localPort, ssid, password);
+        _connectionDetails.save(localPort);
 
         pinMode(_statusPin, OUTPUT);
 
-        if (_client->connect(localPort, ssid, password)) {
+        if (_client->connect(localPort)) {
             _state = Connected;
         }
 
@@ -85,7 +81,7 @@ public:
             // status indicator
             processStatusIndicator();
         } else {
-            connect(_connectionDetails.localPort, _connectionDetails.ssid.c_str(), _connectionDetails.password.c_str());
+            connect(_connectionDetails.localPort);
         }
 
         return isConnected();
@@ -130,6 +126,7 @@ private:
                     digitalWrite(_statusPin, HIGH);
                     break;
                 default:
+                    digitalWrite(_statusPin, LOW);
                     break;
             }
 
@@ -137,5 +134,4 @@ private:
             _statusTimer = now;
         }
     }
-
 };
