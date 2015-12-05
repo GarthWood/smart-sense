@@ -3,8 +3,8 @@
 #include <EEPROM.h>
 #include <ESP8266WebServer.h>
 #include <DNSServer.h>
-#include <WiFiManager.h>   // https://github.com/tzapu/WiFiManager
 #include <WiFiUdp.h>
+#include "WiFiManager.hpp"
 #include "Box.hpp"
 
 #define AP_NAME           "LEDBox"
@@ -13,7 +13,7 @@
 
 #define LED               15
 
-Box box(AP_NAME, HOST_NAME, 33333, 48);
+Box box(AP_NAME, HOST_NAME);
 
 void setup() {
 
@@ -32,7 +32,6 @@ void setup() {
 
 void loop() {
 
-    // run the box first
     if (box.run()) {
 
         char* buffer = NULL;

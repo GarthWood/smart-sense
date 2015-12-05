@@ -1,20 +1,21 @@
 #pragma once
 
-#define CONNECTION_TIMEOUT          60
-
 /**
-A general purpose UDP client
+ A general purpose UDP client
 */
 class UDPClient {
 
 public:
     UDPClient(const char* apName, const char* host, int serverPort, int bufferSize) {
+
         _inputBuffer = (byte*)malloc(bufferSize * sizeof(byte));
         _outputBuffer = (byte*)malloc(bufferSize * sizeof(byte));
         _ap = apName;
         _host = host;
         _serverPort = serverPort;
         _bufferSize = bufferSize;
+
+        _wifi.setDebugOutput(false);
     }
 
     ~UDPClient() {
@@ -23,24 +24,27 @@ public:
     }
 
     /**
-    Connects to the Wifi and initiates the UDP connection
+     Connects to the Wifi and initiates the UDP connection
     */
-    bool connect(int localPort) {
+    bool connect(int localPort, connectionStateCallback callback, bool forceApMode) {
 
-    bool result = false;
+        bool result = false;
 
-        _udp.stop();
+        if (_udp) {
+            _udp.stopAll();
+        }
 
-        if (autoConnect()) {
+        if (autoConnect(callback, forceApMode)) {
             _udp.begin(localPort);
             WiFi.hostByName(_host.c_str(), _ip);
+            result = true;
         }
 
         return result;
     }
 
     /**
-    Returns any data in the buffer
+     Returns any data in the buffer
     */
     bool getData(char*& data) {
 
@@ -56,7 +60,7 @@ public:
     }
 
     /**
-    Sends data to the server
+     Sends data to the server
     */
     void sendData(const char* packet) {
 
@@ -69,7 +73,7 @@ public:
     }
 
     /**
-    Returns if the Wifi is connected
+     Returns if the Wifi is connected
     */
     bool isConnected() {
         return (WiFi.status() == WL_CONNECTED);
@@ -87,7 +91,7 @@ private:
     IPAddress _ip;
 
     byte *_inputBuffer,
-       *_outputBuffer;
+         *_outputBuffer;
 
     int _bufferSize;
 
@@ -96,11 +100,7 @@ private:
     /**
     Establishes the connection to the Wifi
     */
-    bool autoConnect() {
-
-        _wifi.setTimeout(CONNECTION_TIMEOUT);
-        _wifi.autoConnect(_ap.c_str());
-
-        return isConnected();
+    bool autoConnect(connectionStateCallback callback, bool forceApMode) {
+        return _wifi.autoConnect(_ap.c_str(), callback, forceApMode);
     }
 };

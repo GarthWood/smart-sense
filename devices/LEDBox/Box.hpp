@@ -2,19 +2,26 @@
 
 #include "UDPClient.hpp"
 
-#define STATUS_INTERVAL           1000
-#define STATUS_LED_PIN            5
+#define STATUS_LED_PIN            BUILTIN_LED
+#define AP_PIN                    5
+#define SERVER_PORT               11000
+
+void onConnectionState(bool connected) {
+
+    static bool state = false;
+
+    if (connected) {
+        digitalWrite(STATUS_LED_PIN, HIGH);
+    } else {
+        state = !state;
+        digitalWrite(STATUS_LED_PIN, state ? LOW : HIGH);
+    }
+}
 
 /**
  A general container for any device
 */
 class Box {
-
-    enum State {
-        None = 0,
-        Connecting,
-        Connected
-    };
 
     struct ConnectionDetails {
         int localPort;
@@ -25,13 +32,12 @@ class Box {
     };
 
 public:
-    Box(const char* apName, const char* host, int serverPort, int bufferSize = 48)
-    : _statusPin(STATUS_LED_PIN)
-    , _state(None)
-    , _statusTimer(0L)
-    , _statusState(false) {
+    Box(const char* apName, const char* host, int bufferSize = 48) {
 
-        _client = new UDPClient(apName, host, serverPort, bufferSize);
+        pinMode(STATUS_LED_PIN, OUTPUT);
+        pinMode(AP_PIN, INPUT);
+
+        _client = new UDPClient(apName, host, SERVER_PORT, bufferSize);
     }
 
     ~Box() {
@@ -43,19 +49,11 @@ public:
     */
     bool connect(int localPort) {
 
-        _state = Connecting;
+        bool forceApMode = (digitalRead(AP_PIN) == HIGH);
 
         _connectionDetails.save(localPort);
 
-        pinMode(_statusPin, OUTPUT);
-
-        if (_client->connect(localPort)) {
-            _state = Connected;
-        }
-
-        _statusTimer = millis();
-
-        return (_state == Connected);
+        return _client->connect(localPort, onConnectionState, forceApMode);
     }
 
     /**
@@ -77,14 +75,11 @@ public:
     */
     bool run() {
 
-        if (isConnected()) {
-            // status indicator
-            processStatusIndicator();
-        } else {
+        if (!_client->isConnected()) {
             connect(_connectionDetails.localPort);
         }
 
-        return isConnected();
+        return _client->isConnected();
     }
 
 private:
@@ -93,45 +88,4 @@ private:
 
     ConnectionDetails _connectionDetails;
 
-    int _statusPin;
-
-    State _state;
-
-    long _statusTimer;
-    bool _statusState;
-
-    /**
-     Returns the connection state of the box
-    */
-    bool isConnected() {
-        return (_state == Connected) && _client->isConnected();
-    }
-
-    /**
-     Handles the updates to the status indicator
-    */
-    void processStatusIndicator() {
-
-        long now = millis();
-
-        if ((now - _statusTimer) >= STATUS_INTERVAL) {
-
-            // handle the state
-            switch (_state) {
-                case Connecting:
-                    _statusState = !_statusState;
-                    digitalWrite(_statusPin, _statusState ? HIGH : LOW);
-                    break;
-                case Connected:
-                    digitalWrite(_statusPin, HIGH);
-                    break;
-                default:
-                    digitalWrite(_statusPin, LOW);
-                    break;
-            }
-
-            // reset the timer
-            _statusTimer = now;
-        }
-    }
 };
