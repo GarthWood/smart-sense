@@ -2,10 +2,15 @@
 
 #include "UDPClient.hpp"
 
+#define HOST_NAME                 "10.4.108.22"
+#define REMOTE_PORT               11000
+
 #define STATUS_LED_PIN            BUILTIN_LED
 #define AP_PIN                    5
-#define SERVER_PORT               11000
 
+/**
+ Global callback to update the status LED based on the connection state
+*/
 void onConnectionState(bool connected) {
 
     static bool state = false;
@@ -23,21 +28,13 @@ void onConnectionState(bool connected) {
 */
 class Box {
 
-    struct ConnectionDetails {
-        int localPort;
-
-        void save(int localPort) {
-            this->localPort = localPort;
-        }
-    };
-
 public:
-    Box(const char* apName, const char* host, int bufferSize = 48) {
+    Box(const char* apName, int bufferSize = 48) {
 
         pinMode(STATUS_LED_PIN, OUTPUT);
         pinMode(AP_PIN, INPUT);
 
-        _client = new UDPClient(apName, host, SERVER_PORT, bufferSize);
+        _client = new UDPClient(apName, HOST_NAME, REMOTE_PORT, bufferSize);
     }
 
     ~Box() {
@@ -47,13 +44,11 @@ public:
     /**
      Connects to the Wifi, initiates the UDP connection and sets up the box
     */
-    bool connect(int localPort) {
+    bool connect() {
 
         bool forceApMode = (digitalRead(AP_PIN) == HIGH);
 
-        _connectionDetails.save(localPort);
-
-        return _client->connect(localPort, onConnectionState, forceApMode);
+        return _client->connect(onConnectionState, forceApMode);
     }
 
     /**
@@ -76,7 +71,7 @@ public:
     bool run() {
 
         if (!_client->isConnected()) {
-            connect(_connectionDetails.localPort);
+            connect();
         }
 
         return _client->isConnected();
@@ -85,7 +80,5 @@ public:
 private:
 
     UDPClient* _client;
-
-    ConnectionDetails _connectionDetails;
 
 };

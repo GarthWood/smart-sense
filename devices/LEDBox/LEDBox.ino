@@ -8,12 +8,10 @@
 #include "Box.hpp"
 
 #define AP_NAME           "LEDBox"
-#define HOST_NAME         "10.4.108.22"
-#define LOCAL_PORT        2390
 
 #define LED               15
 
-Box box(AP_NAME, HOST_NAME);
+Box box(AP_NAME);
 
 void setup() {
 
@@ -21,7 +19,7 @@ void setup() {
 
     pinMode(LED, OUTPUT);
 
-    if (box.connect(LOCAL_PORT)) {
+    if (box.connect()) {
         Serial.println("Connected");
     } else {
         Serial.println("Could not establish connection");

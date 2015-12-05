@@ -1,5 +1,7 @@
 #pragma once
 
+#define LOCAL_PORT        2390
+
 /**
  A general purpose UDP client
 */
@@ -26,7 +28,7 @@ public:
     /**
      Connects to the Wifi and initiates the UDP connection
     */
-    bool connect(int localPort, connectionStateCallback callback, bool forceApMode) {
+    bool connect(connectionStateCallback callback, bool forceApMode) {
 
         bool result = false;
 
@@ -35,7 +37,7 @@ public:
         }
 
         if (autoConnect(callback, forceApMode)) {
-            _udp.begin(localPort);
+            _udp.begin(LOCAL_PORT);
             WiFi.hostByName(_host.c_str(), _ip);
             result = true;
         }
@@ -48,7 +50,7 @@ public:
     */
     bool getData(char*& data) {
 
-        bool hasData = _udp.parsePacket() != 0;
+        bool hasData = (_udp.parsePacket() != 0);
 
         if (hasData) {
             memset(_inputBuffer, 0, _bufferSize * sizeof(byte));
@@ -98,7 +100,7 @@ private:
     int _serverPort;
 
     /**
-    Establishes the connection to the Wifi
+     Establishes the connection to the Wifi
     */
     bool autoConnect(connectionStateCallback callback, bool forceApMode) {
         return _wifi.autoConnect(_ap.c_str(), callback, forceApMode);
