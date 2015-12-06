@@ -1,0 +1,40 @@
+/**
+ * Wrapper Message
+ */
+message ServiceMessage {
+    oneof message {
+        Ping ping = 2;
+        Pong pong = 3;
+        Subscribe subscribe = 4;
+        Unsubscribe unsubscrive = 5;
+        Get get = 6;
+    }
+}
+
+message Ping {
+    required int32 sequenceNumber = 1;
+}
+
+message Pong {
+    required int32 sequenceNumber = 1;
+}
+
+message Subscribe {
+
+    enum EventType {
+        CHANGED = 1;
+    }
+
+    required string path = 1;
+    required int32 subscriptionId = 2;
+    optional EventType eventType = 3 [default = CHANGED];
+    optional int32 maxUpdatesPerSecond = 4 [default = 1];
+}
+
+message Unsubscribe {
+    required int32 subscriptionId = 1;
+}
+
+message Get {
+    required string path = 1;
+}

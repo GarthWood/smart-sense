@@ -30,7 +30,6 @@ function checkForUpgrade() {
         }
     });
 
-
     require('check-update-github')({name: pkg.name, currentVersion: pkg.version, user: lukevenediger, branch: 'master'}, function(err, latestVersion, defaultMessage){
         if(!err){
             console.log(defaultMessage);
