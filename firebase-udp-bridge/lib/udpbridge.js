@@ -2,10 +2,13 @@
 
 var dgram = require('dgram'),
     colors = require('colors'),
-    Utility = require('./utility.js'),
-    MessageProcessor = require('./MessageProcessor.js'),
-    MessageTypes = require('./Lookups.js').MessageTypes;
-
+    ProtoBuf = require('protobufjs'),
+    MessageUtility = require('./messageutility.js'),
+    MessageType = require('./lookups/messagetype.js'),
+    ErrorCode = require('./lookups/errorcode.js'),
+    ErrorMessage = require('./types/errormessage.js'),
+    ResponseMessage = require('./types/responsemessage.js'),
+    q = require('Q');
 
 /**
  * Creates a new UDP bridge service
@@ -20,59 +23,68 @@ function UDPBridge(port,
                    queryService,
                    presenceService) {
 
-    var server = dgram.createSocket('udp4'),
+    var builder = ProtoBuf.loadProtoFile('./protocol/messages.proto'),
+        ServiceMessage = builder.build('ServiceMessage'),
+        server = dgram.createSocket('udp4'),
         address;
 
     function init() {
         server.on('listening', onServerListening);
         server.on('message', onIncomingMessage);
+        server.bind(port);
     }
 
     function onServerListening() {
         address = server.address();
-        console.log('Server running at\n  => ' + colors.green('http://' + address + ':' + port));
+        console.log('Server running at\n  => ' + colors.green(address.address + ':' + port));
     }
 
     function onIncomingMessage(incomingBuffer, client) {
-        var message = MessageProcessor.toMessage(incomingBuffer);
 
         var responsePromise;
+        var message = ServiceMessage.decode(incomingBuffer);
+        var type = MessageUtility.getMessageType(message);
 
-        switch (message.type) {
-            case MessageTypes.PING:
-                responsePromise = presenceService.ping(message, client);
+        switch (type) {
+            case MessageType.PING:
+                responsePromise = presenceService.ping(message.ping, client);
                 break;
-            case MessageTypes.SUBSCRIBE:
-                responsePromise = subscriptionService.subscribe(message, client);
+            case MessageType.SUBSCRIBE:
+                responsePromise = subscriptionService.subscribe(message.subscribe, client);
                 break;
-            case MessageTypes.UNSUBSCRIBE:
-                responsePromise = subscriptionService.unsubscribe(message, client);
+            case MessageType.UNSUBSCRIBE:
+                responsePromise = subscriptionService.unsubscribe(message.unsubscribe, client);
                 break;
-            case MessageTypes.GET:
-                responsePromise = queryService.get(message, client);
+            case MessageType.GET:
+                responsePromise = queryService.get(message.get, client);
                 break;
-            case MessageTypes.SET:
-                responsePromise = queryService.set(message, client);
+            case MessageType.SET_FLOAT:
+                responsePromise = queryService.setFloat(message.setFloat, client);
                 break;
             default:
-                responsePromise = Q.resolve(new UnknownMessageTypeResponse(message.type));
+                var response = new ResponseMessage(MessageType.ERROR,
+                    new ErrorMessage(ErrorCode.UNKNOWN_MESSAGE_TYPE, type));
+                responsePromise = q.resolve(response);
         }
 
-        responsePromise.then(function(hasReply, replyMessage) {
-            if (hasReply) {
-                var outgoingBuffer = MessageProcessor.toBuffer(replyMessage);
-                server.send(outgoingBuffer, 0, outgoingBuffer.length, remote.port, remote.address);
+        responsePromise.then(function success(response) {
+            if (response) {
+                sendMessage(response.type, response.payload, client.port, client.address);
             }
-        });
+        }).done();
+    }
+
+    function sendMessage(type, message, remotePort, remoteAddress) {
+        var serviceMessage = new ServiceMessage();
+        serviceMessage.set(type, message);
+        var outgoingBuffer = serviceMessage.encodeNB();
+        server.send(outgoingBuffer, 0, outgoingBuffer.length, remotePort, remoteAddress);
     }
 
     init();
 
     // Public API
     return {
-        stop: function() {
-            return Utility.eventToPromise(server.close);
-        }
     };
 }
 

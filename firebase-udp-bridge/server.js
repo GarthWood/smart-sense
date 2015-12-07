@@ -1,21 +1,21 @@
 #!/usr/bin/env node
 'use strict';
 
-// Global depedencies
 var program = require('commander'),
     colors = require('colors'),
-    Firebase = require('firebase');
-
-// local dependencies
-var pkg = require('./package.json'),
-    UDPBridge = require('./lib/udpbridge.js');
+    Firebase = require('firebase'),
+    pkg = require('./package.json'),
+    UDPBridge = require('./lib/udpbridge.js'),
+    SubscriptionService = require('./lib/subscriptionservice.js'),
+    PresenceService = require('./lib/presenceservice.js'),
+    QueryService = require('./lib/queryservice.js');
 
 var listenPort = 11000;
 
 function checkStartupParameters() {
     program
         .version(pkg.version)
-        .option('-p, --port [number]', 'specifies the port (default: 8999)')
+        .option('-p, --port [number]', 'specifies the port (default: ' + listenPort + ')')
         .parse(process.argv);
 
     if (!isNaN(parseFloat(program.port)) && isFinite(program.port)){
@@ -30,16 +30,27 @@ function checkForUpgrade() {
         }
     });
 
-    require('check-update-github')({name: pkg.name, currentVersion: pkg.version, user: lukevenediger, branch: 'master'}, function(err, latestVersion, defaultMessage){
+    /*
+    require('check-update-github')({name: pkg.name, currentVersion: pkg.version, user: 'lukevenediger', branch: 'master'}, function(err, latestVersion, defaultMessage){
         if(!err){
             console.log(defaultMessage);
         }
     });
+    */
 }
 
 function startService() {
-    console.log('Server running at\n  => ' + colors.green('http://localhost:' + port) + '\nCTRL + C to shutdown');
-    new UDPBridge(port);
+    console.log('Server running at\n  => ' + colors.green('localhost:' + listenPort) + '\nCTRL + C to shutdown');
+
+    var firebase = new Firebase('https://smartsense.firebaseio.com/'),
+        subscriptionService = new SubscriptionService(),
+        presenceService = new PresenceService(),
+        queryService = new QueryService(firebase);
+
+    var udpBridge = new UDPBridge(listenPort,
+        subscriptionService,
+        queryService,
+        presenceService);
 }
 
 checkStartupParameters();

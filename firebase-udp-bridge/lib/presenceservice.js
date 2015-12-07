@@ -1,5 +1,8 @@
 'use strict';
 
+var q = require('Q'),
+    MessageType = require('./lookups/messagetype.js'),
+    ResponseMessage = require('./types/responsemessage.js');
 /**
  * Handles presence tracking for connected clients
  * @param {Firebase} firebase the root firebase node
@@ -11,11 +14,16 @@ function PresenceService(firebase) {
     return {
         /**
          * Handles a ping request
-         * @param message the ping request
+         * @param request the ping request
          * @param client the remote client
          * @returns {Promise} promise that resolves to a response message
          */
-        ping: function(message, client) {
+        ping: function(request, client) {
+            var response = new ResponseMessage(MessageType.PONG, {
+              sequenceNumber: request.sequenceNumber + 1
+            });
+
+            return q(response);
         }
     }
 }
