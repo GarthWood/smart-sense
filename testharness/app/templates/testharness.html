@@ -1,0 +1,24 @@
+<div class="testharness" align="center">
+    <div class="container box" ng-controller="BoxController">
+        <div class="cog">
+            <img id="cog" style="-webkit-transform: rotate({{angle}}deg)" ng-src="img/cog.png" width="200" height="200" />
+        </div>
+        <div class="speed" align="center">
+            <span class="speed-label">Speed: </span>
+            <span class="speed-value">{{ speed.toFixed(2) }}</span>
+        </div>
+    </div>
+    <div class="container widget" ng-controller="WidgetController">
+        <div class="slider">
+            <rzslider rz-slider-model="speed" rz-slider-options="slider.options"></rzslider>
+        </div>
+        <div class="rpm">
+            <span class="rpm-label">RPM: </span>
+            <span class="rpm-value">{{ rpm }}</span>
+        </div>
+        <div class="control">
+            <button ng-click="onStartStop('stop')" ng-if="speed !== 0">Stop</button>
+            <button ng-click="onStartStop('start')" ng-if="speed === 0">Start</button>
+        </div>
+    </div>
+</div>
