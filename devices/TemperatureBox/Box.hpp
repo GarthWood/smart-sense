@@ -5,8 +5,17 @@
 #define HOST_NAME                 "10.4.108.22"
 #define REMOTE_PORT               11000
 
-#define STATUS_LED_PIN            BUILTIN_LED
+#define STATUS_LED_PIN            4
 #define AP_PIN                    5
+
+struct stMessage {
+    int type;
+    int nm;
+    float fm;
+    char* cm;
+};
+
+typedef void (*messageCallback)(stMessage&);
 
 /**
  Global callback to update the status LED based on the connection state
@@ -29,7 +38,8 @@ void onConnectionState(bool connected) {
 class Box {
 
 public:
-    Box(const char* apName) {
+    Box(const char* apName, messageCallback callback)
+    : _messageCallback(callback) {
 
         pinMode(STATUS_LED_PIN, OUTPUT);
         pinMode(AP_PIN, INPUT);
@@ -46,16 +56,15 @@ public:
     bool connect() {
 
         bool forceApMode = (digitalRead(AP_PIN) == HIGH);
+        bool result = false;
 
-        return _client.connect(onConnectionState, forceApMode);
-    }
+        if (_client.connect(onConnectionState, forceApMode)) {
+            // send the registration message
+            //box.sendData();
+            result = true;
+        }
 
-    /**
-     Returns any data in the buffer
-    */
-    bool getData(char*& data) {
-        //return _client.getData(data);
-        return false;
+        return result;
     }
 
     /**
@@ -68,14 +77,28 @@ public:
 
         memset(buffer, 0, BUFFER_SIZE * sizeof(byte));
 
-        pb_ostream_t stream = pb_ostream_from_buffer(buffer, sizeof(buffer));
+        pb_ostream_t stream = pb_ostream_from_buffer(buffer, BUFFER_SIZE);
 
-        //message.data = packet;
+        //memcpy(message.packet, packet, strlen(packet));
 
-        /* Now we are ready to encode the message! */
+        // encode and send the message
         if (pb_encode(&stream, SimpleMessage_fields, &message)) {
             _client.sendData((const char*)buffer);
         }
+    }
+
+    /**
+     Sends data to the server
+    */
+    void sendData(long value) {
+
+        char packet[BUFFER_SIZE];
+
+        memset(packet, 0, BUFFER_SIZE * sizeof(char));
+
+        sprintf(packet, "%ld", value);
+
+        sendData(packet);
     }
 
     /**
@@ -96,6 +119,8 @@ private:
 
     UDPClient _client;
 
+    messageCallback _messageCallback;
+
     /**
      Processes messages send from the server
     */
@@ -110,7 +135,13 @@ private:
             pb_istream_t stream = pb_istream_from_buffer(buffer, length);
 
             if (pb_decode(&stream, SimpleMessage_fields, &message)) {
-                //message.x;
+
+                stMessage message;
+
+                /*message.type = x;
+                message.nm = x;
+
+                _messageCallback(message);*/
             }
         }
     }
