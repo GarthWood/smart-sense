@@ -23,10 +23,11 @@ function UDPBridge(port,
                    queryService,
                    presenceService) {
 
-    var builder = ProtoBuf.loadProtoFile('./protocol/messages.proto'),
-        ServiceMessage = builder.build('ServiceMessage'),
+    var builder = ProtoBuf.loadProtoFile('./../protocols/messages.proto'),
         server = dgram.createSocket('udp4'),
         address;
+
+    var ServiceMessage = builder.build('ServiceMessage');
 
     function init() {
         server.on('listening', onServerListening);

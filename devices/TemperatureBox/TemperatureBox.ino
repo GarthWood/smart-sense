@@ -17,7 +17,7 @@
 #include "Box.hpp"
 
 // messages
-#include "simple.pb.hpp"
+#include "messages.pb.hpp"
 
 
 #define AP_NAME           "TemperatureBox"
@@ -46,6 +46,7 @@ void setup() {
 
     if (box.connect()) {
         Serial.println("Connected");
+        box.sendData("box0001/outputEvents/value");
     } else {
         Serial.println("Could not establish connection");
     }

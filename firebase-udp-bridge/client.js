@@ -8,7 +8,7 @@ var program = require('commander'),
     MessageUtility = require('./lib/messageutility.js'),
     MessageType = require('./lib/lookups/messagetype.js'),
     ProtoBuf = require('protobufjs'),
-    builder = ProtoBuf.loadProtoFile('./protocol/messages.proto'),
+    builder = ProtoBuf.loadProtoFile('./../protocols/messages.proto'),
     ServiceMessage = builder.build('ServiceMessage');
 
 var serverAddress = '127.0.0.1',

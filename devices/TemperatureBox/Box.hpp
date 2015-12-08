@@ -1,6 +1,6 @@
 #pragma once
 
-#include "simple.pb.h"
+#include "messages.pb.h"
 
 #define HOST_NAME                 "10.4.108.22"
 #define REMOTE_PORT               11000
@@ -30,6 +30,19 @@ void onConnectionState(bool connected) {
         state = !state;
         digitalWrite(STATUS_LED_PIN, state ? LOW : HIGH);
     }
+}
+
+/**
+ Callback encoding string callback
+*/
+bool write_string(pb_ostream_t *stream, const pb_field_t *field, void * const **arg)
+{
+    char *str = (char*)stream->state;
+
+    if (!pb_encode_tag_for_field(stream, field))
+        return false;
+
+    return pb_encode_string(stream, (uint8_t*)str, strlen(str));
 }
 
 /**
@@ -73,16 +86,22 @@ public:
     void sendData(const char* packet) {
 
         uint8_t buffer[BUFFER_SIZE];
-        SimpleMessage message = SimpleMessage_init_zero;
+        ServiceMessage message = ServiceMessage_init_default;
 
         memset(buffer, 0, BUFFER_SIZE * sizeof(byte));
-
         pb_ostream_t stream = pb_ostream_from_buffer(buffer, BUFFER_SIZE);
 
-        //memcpy(message.packet, packet, strlen(packet));
+        SetNumber request;
+
+        memset(&request, 0, sizeof(request));
+        strcpy(request.path, packet);
+        request.value = 1;
+
+        message.which_payload = ServiceMessage_setNumber_tag;
+        message.payload.setNumber = request;
 
         // encode and send the message
-        if (pb_encode(&stream, SimpleMessage_fields, &message)) {
+        if (pb_encode(&stream, ServiceMessage_fields, &message)) {
             _client.sendData((const char*)buffer);
         }
     }
@@ -126,7 +145,7 @@ private:
     */
     void handleIncomingMessages() {
 
-        uint8_t* buffer = NULL;
+        /*uint8_t* buffer = NULL;
         size_t length = (size_t)_client.getData((char*&)buffer);
 
         if (length > 0) {
@@ -138,11 +157,11 @@ private:
 
                 stMessage message;
 
-                /*message.type = x;
+                message.type = x;
                 message.nm = x;
 
-                _messageCallback(message);*/
+                _messageCallback(message);
             }
-        }
+        }*/
     }
 };
