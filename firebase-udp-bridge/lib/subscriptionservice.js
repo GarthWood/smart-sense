@@ -1,9 +1,15 @@
+'use strict';
+
+var SubscriptionEventType = require('./lookups/subscriptioneventtype.js'),
+    ErrorMessage = require('./types/errormessage.js'),
+    ErrorCode = require('./lookups/errorcode.js');
+
 /**
  * Handles all subscription requests to watch for data changes
- * @param {Firebase} firebase the root node
+ * @param {Firebase} rootFirebase the root node
  * @constructor
  */
-function SubscriptionService(firebase) {
+function SubscriptionService(rootFirebase) {
 
     return {
         /**
@@ -13,6 +19,24 @@ function SubscriptionService(firebase) {
          * @returns {Promise} resolves to a response message
          */
         subscribe: function(message, client) {
+
+            /*
+            var target = rootFirebase.child(message.path);
+
+            var firebaseEvent;
+            switch(message.eventType) {
+                case SubscriptionEventType.CHANGED:
+                    firebaseEvent = 'value';
+                    break;
+                default:
+                    return new ErrorMessage(ErrorCode.INVALID_SUBSCRIPTION_EVENT_TYPE, message.eventType);
+            }
+
+            target.on(firebaseEvent, function(snapshot) {
+
+            });
+
+            */
         },
         /**
          * Unsubscribe from a node

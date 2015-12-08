@@ -3,12 +3,17 @@
  * the message type.
  */
 message ServiceMessage {
-    oneof message {
+    optional int32 messageId = 1;
+
+    oneof payload {
         Ping ping = 2;
         Pong pong = 3;
         Subscribe subscribe = 4;
-        Unsubscribe unsubscrive = 5;
+        Unsubscribe unsubscribe = 5;
         Get get = 6;
+        Error error = 7;
+        FloatValue floatValue = 8;
+        SetFloat setFloat = 9;
     }
 }
 
@@ -53,6 +58,33 @@ message Unsubscribe {
  * Get the value at a node
  */
 message Get {
+    enum ValueType {
+        FLOAT = 1;
+    }
+
     required string path = 1;
-    required int32 requestId = 2;
+    optional ValueType valueType = 2 [default = FLOAT];
+}
+
+message FloatValue {
+    required string path = 1;
+    required float value = 2;
+}
+
+message SetFloat {
+    required string path = 1;
+    required float value = 2;
+}
+
+message Error {
+    enum ErrorCode {
+        UNKNOWN_ERROR = 1;
+        INTERNAL_ERROR = 2;
+        UNKNOWN_MESSAGE_TYPE = 3;
+        INVALID_SUBSCRIPTION_EVENT_TYPE = 4;
+    }
+
+    required ErrorCode code = 0;
+    optional string description = 1;
+    optional int32 messageId = 2;
 }

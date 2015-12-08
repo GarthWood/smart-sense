@@ -1,11 +1,13 @@
 'use strict';
 
+var q = require('Q');
+
 /**
  * Handles data reads and writes (not change events)
- * @param {Firebase} firebase the root firebase node
+ * @param {Firebase} rootFirebase the root firebase node
  * @constructor
  */
-function QueryService(firebase) {
+function QueryService(rootFirebase) {
 
     // Public API
     return {
@@ -18,12 +20,20 @@ function QueryService(firebase) {
         get: function(message, client) {
         },
         /**
-         * Sets a value at a node
+         * Sets a float value at a node
          * @param message the request message
          * @param client the remote client
          * @returns {Promise} resolves to a response message
          */
-        set: function(message, client) {
+        setFloat: function(message, client) {
+
+            var deferred = q.defer();
+
+            rootFirebase.child(message.path).set(message.value, function complete(error) {
+                deferred.resolve();
+            });
+
+            return deferred.promise;
         }
     };
 }
