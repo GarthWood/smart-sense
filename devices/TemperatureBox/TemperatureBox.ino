@@ -12,6 +12,7 @@
 #include "pb_decode.hpp"
 
 // box specific
+#include <OneWire.h>
 #include "WiFiManager.hpp"
 #include "UDPClient.hpp"
 #include "Box.hpp"
@@ -21,32 +22,37 @@
 
 
 #define AP_NAME           "TemperatureBox"
-#define POT_PIN           A0
+#define TEMP_PIN          13
 #define SEND_INTERVAL     1000
 
 void onMessage(stMessage& message);
 int readPotValue();
+void setupDS18B20();
+void sendTemperature();
+void readTemperature();
 
-const int NUM_READINGS = 50;
+const int NUM_READINGS = 5;
 int readings[NUM_READINGS];
 int readingIndex = 0;
 int currentReading = 0;
 int lastReading = 0;
 
-long potTimer = 0;
+long timer = 0;
 
 Box box(AP_NAME, onMessage);
 
+OneWire tempSensor(TEMP_PIN);
+byte sensorAddress[8];
 
 void setup() {
 
     Serial.begin(9600);
 
-    potTimer = millis();
+    timer = millis();
 
     if (box.connect()) {
         Serial.println("Connected");
-        box.sendData("box0001/outputEvents/value");
+        setupDS18B20();
     } else {
         Serial.println("Could not establish connection");
     }
@@ -55,33 +61,35 @@ void setup() {
 void loop() {
 
     if (box.run()) {
-
-        /*char* buffer = NULL;
-
-        if (box.getData(buffer)) {
-            Serial.println(buffer);
-            digitalWrite(LED, String(buffer) != "0" ? HIGH : LOW);
-            box.sendData("test");
-        }*/
+        readTemperature();
+        sendTemperature();
     }
 }
 
-void sendPotValue() {
+void setupDS18B20() {
+
+    while (!tempSensor.search(sensorAddress)) {
+        tempSensor.reset_search();
+        memset(sensorAddress, 0, 8);
+    }
+}
+
+void sendTemperature() {
 
     long now = millis();
 
-    if ((now - potTimer) >= SEND_INTERVAL) {
+    if ((now - timer) >= SEND_INTERVAL) {
 
         if (lastReading != currentReading) {
-            box.sendData((long)currentReading);
+            box.sendData("box0001/outputEvents/value", currentReading);
             lastReading = currentReading;
         }
 
-        potTimer = now;
+        timer = now;
     }
 }
 
-int readPotValue() {
+void readTemperature() {
 
     if (readingIndex == NUM_READINGS) {
 
@@ -94,11 +102,35 @@ int readPotValue() {
         currentReading = (int)(total / NUM_READINGS);
         readingIndex = 0;
     } else {
-        readings[readingIndex++] = analogRead(POT_PIN);
-        delay(1);
-    }
 
-    return currentReading;
+        byte data[12];
+
+        tempSensor.reset();
+        tempSensor.select(sensorAddress);
+        tempSensor.write(0x44, 1);
+        delay(750);
+        tempSensor.reset();
+        tempSensor.select(sensorAddress);
+        tempSensor.write(0xBE);
+
+        for (int i = 0; i < 9; ++i) {           // we need 9 bytes
+            data[i] = tempSensor.read();
+        }
+
+        int16_t raw = (data[1] << 8) | data[0];
+
+        byte cfg = (data[4] & 0x60);
+
+        if (cfg == 0x00) {
+            raw = raw & ~7;  // 9 bit resolution, 93.75 ms
+        } else if (cfg == 0x20) {
+            raw = raw & ~3; // 10 bit res, 187.5 ms
+        } else if (cfg == 0x40) {
+            raw = raw & ~1; // 11 bit res, 375 ms
+        }
+
+        readings[readingIndex++] = (int)(((float)raw / 16.0) * 1000);
+    }
 }
 
 void onMessage(stMessage& message) {

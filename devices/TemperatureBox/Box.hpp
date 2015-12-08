@@ -83,7 +83,7 @@ public:
     /**
      Sends data to the server
     */
-    void sendData(const char* packet) {
+    void sendData(const char* path, int value) {
 
         uint8_t buffer[BUFFER_SIZE];
         ServiceMessage message = ServiceMessage_init_default;
@@ -94,8 +94,8 @@ public:
         SetNumber request;
 
         memset(&request, 0, sizeof(request));
-        strcpy(request.path, packet);
-        request.value = 1;
+        strcpy(request.path, path);
+        request.value = value;
 
         message.which_payload = ServiceMessage_setNumber_tag;
         message.payload.setNumber = request;
@@ -104,20 +104,6 @@ public:
         if (pb_encode(&stream, ServiceMessage_fields, &message)) {
             _client.sendData((const char*)buffer);
         }
-    }
-
-    /**
-     Sends data to the server
-    */
-    void sendData(long value) {
-
-        char packet[BUFFER_SIZE];
-
-        memset(packet, 0, BUFFER_SIZE * sizeof(char));
-
-        sprintf(packet, "%ld", value);
-
-        sendData(packet);
     }
 
     /**
