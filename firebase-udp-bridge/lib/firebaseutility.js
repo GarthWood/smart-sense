@@ -9,7 +9,7 @@ function FirebaseUtility() {
          * Sets the value at a node
          * @param {Firebase} target the firebase node
          * @param {*} value the value to save on the target
-         * @returns {Promise}
+         * @returns {*|promise}
          */
         set: function(target, value) {
             var deferred = q.defer();
@@ -24,20 +24,26 @@ function FirebaseUtility() {
 
             return deferred.promise;
         },
+        /**
+         * Gets the value at the node
+         * @param {Firebase} target the firebase node
+         * @returns {*|promise} a promise that resolves to the value
+         */
         get: function(target) {
             var deferred = q.defer();
 
-            target.once
+            target.once('value',
+                function success(snapshot) {
+                    deferred.resolve(snapshot.val());
+                },
+                function failure(error) {
+                    deferred.reject(error);
+                }
+            );
+
+            return deferred.promise;
         }
-    }
+    };
 }
 
 module.exports = new FirebaseUtility();
-
-var deferred = q.defer();
-
-rootFirebase.child(message.path).set(message.value, function complete(error) {
-    deferred.resolve();
-});
-
-return deferred.promise;

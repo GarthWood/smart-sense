@@ -1,6 +1,6 @@
 'use strict';
 
-var q = require('Q');
+var FirebaseUtility = require('./firebaseutility.js');
 
 /**
  * Handles data reads and writes (not change events)
@@ -26,14 +26,7 @@ function QueryService(rootFirebase) {
          * @returns {Promise} resolves to a response message
          */
         setFloat: function(message, client) {
-
-            var deferred = q.defer();
-
-            rootFirebase.child(message.path).set(message.value, function complete(error) {
-                deferred.resolve();
-            });
-
-            return deferred.promise;
+            return FirebaseUtility.set(rootFirebase.child(message.path), message.value);
         }
     };
 }
