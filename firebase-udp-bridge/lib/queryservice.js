@@ -20,12 +20,12 @@ function QueryService(rootFirebase) {
         get: function(message, client) {
         },
         /**
-         * Sets a float value at a node
+         * Sets a number value at a node
          * @param message the request message
          * @param client the remote client
          * @returns {Promise} resolves to a response message
          */
-        setFloat: function(message, client) {
+        setNumber: function(message, client) {
             return FirebaseUtility.set(rootFirebase.child(message.path), message.value);
         }
     };

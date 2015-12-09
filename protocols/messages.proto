@@ -16,6 +16,7 @@ message ServiceMessage {
         Error error = 7;
         NumberValue numberValue = 8;
         SetNumber setNumber = 9;
+        LogMessage logMessage = 10;
     }
 }
 
@@ -76,6 +77,11 @@ message NumberValue {
 message SetNumber {
     required string path = 1 [(nanopb).max_size = 64];
     required int32 value = 2;
+}
+
+message LogMessage {
+    required string deviceId = 1 [(nanopb).max_size = 15];
+    required string text = 2 [(nanopb).max_size = 113];
 }
 
 message Error {

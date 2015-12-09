@@ -2,12 +2,12 @@
 
 var dgram = require('dgram'),
     colors = require('colors'),
-    ProtoBuf = require('protobufjs'),
     MessageUtility = require('./messageutility.js'),
     MessageType = require('./lookups/messagetype.js'),
     ErrorCode = require('./lookups/errorcode.js'),
     ErrorMessage = require('./types/errormessage.js'),
     ResponseMessage = require('./types/responsemessage.js'),
+    ProtocolProvider = require('./protocolprovider.js'),
     q = require('Q');
 
 /**
@@ -23,11 +23,10 @@ function UDPBridge(port,
                    queryService,
                    presenceService) {
 
-    var builder = ProtoBuf.loadProtoFile('./../protocols/messages.proto'),
-        server = dgram.createSocket('udp4'),
+    var server = dgram.createSocket('udp4'),
         address;
 
-    var ServiceMessage = builder.build('ServiceMessage');
+    var ServiceMessage = ProtocolProvider.createServiceMessage();
 
     function init() {
         server.on('listening', onServerListening);
@@ -37,7 +36,7 @@ function UDPBridge(port,
 
     function onServerListening() {
         address = server.address();
-        console.log('Server running at\n  => ' + colors.green(address.address + ':' + port));
+        console.log('Server running at => ' + colors.green(address.address + ':' + address.port));
     }
 
     function onIncomingMessage(incomingBuffer, client) {
@@ -59,8 +58,13 @@ function UDPBridge(port,
             case MessageType.GET:
                 responsePromise = queryService.get(message.get, client);
                 break;
-            case MessageType.SET_FLOAT:
-                responsePromise = queryService.setFloat(message.setFloat, client);
+            case MessageType.SET_NUMBER:
+                responsePromise = queryService.setNumber(message.setFloat, client);
+                break;
+            case MessageType.LOG_MESSAGE:
+                var log = message.logMessage;
+                logDeviceMessage(log.deviceId, log.text);
+                responsePromise = q();
                 break;
             default:
                 var response = new ResponseMessage(MessageType.ERROR,
@@ -80,6 +84,10 @@ function UDPBridge(port,
         serviceMessage.set(type, message);
         var outgoingBuffer = serviceMessage.encodeNB();
         server.send(outgoingBuffer, 0, outgoingBuffer.length, remotePort, remoteAddress);
+    }
+
+    function logDeviceMessage(deviceId, text) {
+        console.log(colors.magenta(deviceId + ': ') + text);
     }
 
     init();

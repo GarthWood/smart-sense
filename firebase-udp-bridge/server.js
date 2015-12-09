@@ -40,8 +40,6 @@ function checkForUpgrade() {
 }
 
 function startService() {
-    console.log('Server running at\n  => ' + colors.green('localhost:' + listenPort) + '\nCTRL + C to shutdown');
-
     var firebase = new Firebase('https://smartsense.firebaseio.com/'),
         subscriptionService = new SubscriptionService(),
         presenceService = new PresenceService(),

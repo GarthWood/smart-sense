@@ -8,8 +8,9 @@ var MessageType = {
     UNSUBSCRIBE: 'unsubscribe',
     GET: 'get',
     ERROR: 'error',
-    FLOAT_VALUE: 'floatValue',
-    SET_FLOAT: 'setFloat'
+    NUMBER_VALUE: 'numberValue',
+    SET_NUMBER: 'setNumber',
+    LOG_MESSAGE: 'logMessage'
 };
 
 module.exports = MessageType;
