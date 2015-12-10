@@ -7,9 +7,9 @@ var program = require('commander'),
     colors = require('colors'),
     MessageUtility = require('./lib/messageutility.js'),
     MessageType = require('./lib/lookups/messagetype.js'),
-    ProtoBuf = require('protobufjs'),
-    builder = ProtoBuf.loadProtoFile('./../protocols/messages.proto'),
-    ServiceMessage = builder.build('ServiceMessage');
+    ProtocolProvider = require('./lib/protocolprovider.js'),
+    ServiceMessage = ProtocolProvider.createServiceMessage(),
+    _ = require('underscore');
 
 var serverAddress = '127.0.0.1',
     remotePort = 11000,
@@ -70,10 +70,14 @@ function processCommand() {
             sendGetPacket();
             break;
         case 'f':
-            sendSetFloatPacket();
+            sendSetNumberPacket();
+            break;
+        case 'm':
+            var messageText = program.args.join(' ');
+            sendLogMessagePacket(messageText);
             break;
         default:
-            console.log('(p)ing, (r)egister, (s)ubscribe, (u)nsubscribe, (g)et, set(f)loat');
+            console.log('(p)ing, (s)ubscribe, (g)et, set(n)umber, send(m)message');
             break;
     }
 }
@@ -105,12 +109,20 @@ function sendSubscribePacket() {
     sendMessage(subscribe, MessageType.SUBSCRIBE, MessageUtility.nextMessageId())
 }
 
-function sendSetFloatPacket() {
-    var setFloat = {
+function sendSetNumberPacket() {
+    var setNumber = {
         path: 'box0001/outputEvents/value',
         value: Math.floor(Math.random() * 1000) / 100
     };
-    sendMessage(setFloat, MessageType.SET_FLOAT);
+    sendMessage(setNumber, MessageType.SET_NUMBER);
+}
+
+function sendLogMessagePacket(message) {
+    var packet = {
+        deviceId: 'box0001',
+        text: message
+    };
+    sendMessage(packet, MessageType.LOG_MESSAGE);
 }
 
 checkStartupParameters();
