@@ -68,13 +68,10 @@ public:
     /**
      Sends data to the server
     */
-    void sendData(const char* packet) {
-
-        memset(_outputBuffer, 0, BUFFER_SIZE * sizeof(byte));
-        memcpy(_outputBuffer, packet, strlen(packet) + 1);
+    void sendData(uint8_t* packet, int size) {
 
         _udp.beginPacket(_ip, _serverPort);
-        _udp.write(_outputBuffer, BUFFER_SIZE);
+        _udp.write(packet, size);
         _udp.endPacket();
     }
 
@@ -96,8 +93,7 @@ private:
 
     IPAddress _ip;
 
-    byte _inputBuffer[BUFFER_SIZE],
-         _outputBuffer[BUFFER_SIZE];
+    byte _inputBuffer[BUFFER_SIZE];
 
     int _serverPort;
 

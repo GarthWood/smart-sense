@@ -59,13 +59,13 @@ protected:
 
         if (_readingIndex == NUM_READINGS) {
 
-            int total = 0;
+            float total = 0;
 
             for (int i = 0; i < NUM_READINGS; ++i) {
                 total += _readings[i];
             }
 
-            _currentReading = (int)(total / NUM_READINGS);
+            _currentReading = total / (float)NUM_READINGS;
             _readingIndex = 0;
         } else {
             float value;

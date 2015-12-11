@@ -7,14 +7,14 @@
 #define MIN_READING            380
 #define MAX_READING            1020
 
-class Moister : public Sensor {
+class Moisture : public Sensor {
 
 public:
-    Moister(bool active)
+    Moisture(bool active)
     : Sensor(active) {
     }
 
-    virtual ~Moister() {
+    virtual ~Moisture() {
     }
 
 private:
@@ -27,8 +27,8 @@ private:
         int reading = analogRead(MOISTER_PIN);
 
         // constrict the reading
-        reading = max(reading, MIN_READING);
-        reading = min(reading, MAX_READING);
+        reading = (reading < MIN_READING) ? MIN_READING : reading;
+        reading = (reading > MAX_READING) ? MAX_READING : reading;
 
         // convert the reading to a saturation %, 0 to 100
         value = (float)map(reading, MAX_READING, MIN_READING, 0, 100);

@@ -33,19 +33,6 @@ void onConnectionState(bool connected) {
 }
 
 /**
- Callback encoding string callback
-*/
-bool write_string(pb_ostream_t *stream, const pb_field_t *field, void * const **arg)
-{
-    char *str = (char*)stream->state;
-
-    if (!pb_encode_tag_for_field(stream, field))
-        return false;
-
-    return pb_encode_string(stream, (uint8_t*)str, strlen(str));
-}
-
-/**
  A general container for any device
 */
 class Box {
@@ -69,15 +56,8 @@ public:
     bool connect() {
 
         bool forceApMode = (digitalRead(AP_PIN) == HIGH);
-        bool result = false;
 
-        if (_client.connect(onConnectionState, forceApMode)) {
-            // send the registration message
-            //box.sendData();
-            result = true;
-        }
-
-        return result;
+        return _client.connect(onConnectionState, forceApMode);
     }
 
     /**
@@ -85,24 +65,22 @@ public:
     */
     void sendData(const char* path, int value) {
 
-        uint8_t buffer[BUFFER_SIZE];
-        ServiceMessage message = ServiceMessage_init_default;
+        uint8_t buffer[SetNumber_size];
+        ServiceMessage message;
 
-        memset(buffer, 0, BUFFER_SIZE * sizeof(byte));
-        pb_ostream_t stream = pb_ostream_from_buffer(buffer, BUFFER_SIZE);
+        memset(buffer, 0, SetNumber_size * sizeof(byte));
+        pb_ostream_t stream = pb_ostream_from_buffer(buffer, SetNumber_size);
 
-        SetNumber request;
+        memset(message.payload.setNumber.path, 0, sizeof(message.payload.setNumber.path));
+        strcpy(message.payload.setNumber.path, path);
+        message.payload.setNumber.value = value;
 
-        memset(&request, 0, sizeof(request));
-        strcpy(request.path, path);
-        request.value = value;
-
+        message.has_messageId = false;
         message.which_payload = ServiceMessage_setNumber_tag;
-        message.payload.setNumber = request;
 
         // encode and send the message
         if (pb_encode(&stream, ServiceMessage_fields, &message)) {
-            _client.sendData((const char*)buffer);
+            _client.sendData(buffer, SetNumber_size);
         }
     }
 

@@ -59,7 +59,7 @@ function UDPBridge(port,
                 responsePromise = queryService.get(message.get, client);
                 break;
             case MessageType.SET_NUMBER:
-                responsePromise = queryService.setNumber(message.setFloat, client);
+                responsePromise = queryService.setNumber(message.setNumber, client);
                 break;
             case MessageType.LOG_MESSAGE:
                 var log = message.logMessage;

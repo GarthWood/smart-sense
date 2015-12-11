@@ -17,13 +17,14 @@
 #include "UDPClient.hpp"
 #include "Box.hpp"
 #include "Temperature.hpp"
-#include "Moister.hpp"
+#include "Moisture.hpp"
 
 // messages
 #include "messages.pb.hpp"
 
 
-#define AP_NAME           "TemperatureBox"
+#define AP_NAME           "TemperatureBox1"
+#define PATH              "devices/TemperatureBox1/output/value1"
 #define SEND_INTERVAL     1000
 
 void onMessage(stMessage& message);
@@ -33,7 +34,7 @@ long timer = 0;
 
 Box box(AP_NAME, onMessage);
 Temperature temperature(true);
-Moister moister(false);
+Moisture moisture(false);
 
 
 void setup() {
@@ -45,7 +46,7 @@ void setup() {
     if (box.connect()) {
         Serial.println("Connected");
         temperature.init();
-        moister.init();
+        moisture.init();
     } else {
         Serial.println("Could not establish connection");
     }
@@ -55,7 +56,7 @@ void loop() {
 
     if (box.run()) {
         temperature.run();
-        moister.run();
+        moisture.run();
         sendValues();
     }
 }
@@ -68,12 +69,12 @@ void sendValues() {
 
         // temperature
         if (temperature.hasChanged()) {
-            box.sendData("box0001/outputEvents/value", (int)(temperature.read() * 1000));
+            box.sendData(PATH, (int)(temperature.read() * 1000.0));
         }
 
-        // moister
-        if (moister.hasChanged()) {
-            //box.sendData("box0001/outputEvents/value", (int)(moister.read() * 1000));
+        // moisture
+        if (moisture.hasChanged()) {
+            box.sendData(PATH, (int)(moisture.read() * 1000.0));
         }
 
         timer = now;
