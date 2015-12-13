@@ -2,13 +2,15 @@
 
 var dgram = require('dgram'),
     colors = require('colors'),
+    q = require('Q'),
     MessageUtility = require('./messageutility.js'),
     MessageType = require('./lookups/messagetype.js'),
     ErrorCode = require('./lookups/errorcode.js'),
     ErrorMessage = require('./types/errormessage.js'),
     ResponseMessage = require('./types/responsemessage.js'),
     ProtocolProvider = require('./protocolprovider.js'),
-    q = require('Q');
+    ServiceMessage = ProtocolProvider.createServiceMessage(),
+    Client = require('./types/client.js');
 
 /**
  * Creates a new UDP bridge service
@@ -26,8 +28,6 @@ function UDPBridge(port,
     var server = dgram.createSocket('udp4'),
         address;
 
-    var ServiceMessage = ProtocolProvider.createServiceMessage();
-
     function init() {
         server.on('listening', onServerListening);
         server.on('message', onIncomingMessage);
@@ -39,11 +39,12 @@ function UDPBridge(port,
         console.log('Server running at => ' + colors.green(address.address + ':' + address.port));
     }
 
-    function onIncomingMessage(incomingBuffer, client) {
+    function onIncomingMessage(incomingBuffer, rInfo) {
 
-        var responsePromise;
-        var message = ServiceMessage.decode(incomingBuffer);
-        var type = MessageUtility.getMessageType(message);
+        var responsePromise,
+            message = ServiceMessage.decode(incomingBuffer),
+            type = MessageUtility.getMessageType(message),
+            client = Client(rInfo.address, rInfo.port, server);
 
         switch (type) {
             case MessageType.PING:
@@ -74,7 +75,7 @@ function UDPBridge(port,
 
         responsePromise.then(function success(response) {
             if (response) {
-                sendMessage(response.type, response.payload, client.port, client.address);
+                client.send(response.type, response.payload);
             }
         }).done();
     }
