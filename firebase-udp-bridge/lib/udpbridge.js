@@ -2,7 +2,7 @@
 
 var dgram = require('dgram'),
     colors = require('colors'),
-    q = require('Q'),
+    q = require('q'),
     MessageUtility = require('./messageutility.js'),
     MessageType = require('./lookups/messagetype.js'),
     ErrorCode = require('./lookups/errorcode.js'),
