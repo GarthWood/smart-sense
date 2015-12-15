@@ -2,7 +2,7 @@
 
 #include "messages.pb.h"
 
-#define HOST_NAME                 "10.4.108.22"
+#define HOST_NAME                 "192.168.0.11"//"10.4.108.22"
 #define REMOTE_PORT               11000
 
 #define STATUS_LED_PIN            4
