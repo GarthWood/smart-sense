@@ -6,7 +6,7 @@ var SubscriptionEventType = require('./lookups/subscriptioneventtype.js'),
     MessageType = require('./lookups/messagetype.js'),
     FirebaseEventType = require('./lookups/firebaseeventtype.js'),
     MessageUtility = require('./messageutility.js'),
-    q = require('Q')
+    q = require('q')
 
 /**
  * Handles all subscription requests to watch for data changes
