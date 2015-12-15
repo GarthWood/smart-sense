@@ -1,6 +1,6 @@
 'use strict';
 
-var q = require('Q');
+var q = require('q');
 
 function FirebaseUtility() {
 
