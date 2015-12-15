@@ -1,7 +1,7 @@
 'use strict';
 
 var SubscriptionEventType = require('./lookups/subscriptioneventtype.js'),
-    ErrorMessage = require('./types/errormessage.js'),
+    ErrorMessage = require('./types/errmsg.js'),
     ErrorCode = require('./lookups/errorcode.js'),
     MessageType = require('./lookups/messagetype.js'),
     FirebaseEventType = require('./lookups/firebaseeventtype.js'),
