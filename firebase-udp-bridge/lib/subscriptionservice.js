@@ -2,7 +2,11 @@
 
 var SubscriptionEventType = require('./lookups/subscriptioneventtype.js'),
     ErrorMessage = require('./types/errormessage.js'),
-    ErrorCode = require('./lookups/errorcode.js');
+    ErrorCode = require('./lookups/errorcode.js'),
+    MessageType = require('./lookups/messagetype.js'),
+    FirebaseEventType = require('./lookups/firebaseeventtype.js'),
+    MessageUtility = require('./messageutility.js'),
+    q = require('Q')
 
 /**
  * Handles all subscription requests to watch for data changes
@@ -15,12 +19,11 @@ function SubscriptionService(rootFirebase) {
         /**
          * Subscribe to a node
          * @param message the subscription request
-         * @param client the request client
+         * @param {Client} client the request client
          * @returns {Promise} resolves to a response message
          */
         subscribe: function(message, client) {
 
-            /*
             var target = rootFirebase.child(message.path);
 
             var firebaseEvent;
@@ -32,11 +35,16 @@ function SubscriptionService(rootFirebase) {
                     return new ErrorMessage(ErrorCode.INVALID_SUBSCRIPTION_EVENT_TYPE, message.eventType);
             }
 
-            target.on(firebaseEvent, function(snapshot) {
-
+            var handlerFunction = target.on(firebaseEvent, function(snapshot) {
+                var value = MessageUtility.floatToInt32(snapshot.val());
+                client.send(MessageType.NUMBER_EVENT, {
+                    subscriptionId: message.subscriptionId,
+                    eventType: FirebaseEventType.CHANGED,
+                    value: value
+                });
             });
 
-            */
+            return q();
         },
         /**
          * Unsubscribe from a node

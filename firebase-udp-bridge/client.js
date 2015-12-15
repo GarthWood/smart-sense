@@ -16,6 +16,7 @@ var serverAddress = '10.4.108.22',
     listenPort = remotePort + 1,
     request = 'p',
     lastPingSequenceNumber = 9128,
+    deviceId = 'box0001',
     udp;
 
 function checkStartupParameters() {
@@ -103,7 +104,7 @@ function sendPingPacket() {
 
 function sendSubscribePacket() {
     var subscribe = {
-        path: '/box00001/inputEvents/value',
+        path: 'devices/' + deviceId + '/input/value1',
         subscriptionId: 1234
     };
     sendMessage(subscribe, MessageType.SUBSCRIBE, MessageUtility.nextMessageId())
@@ -119,7 +120,7 @@ function sendSetNumberPacket() {
 
 function sendLogMessagePacket(message) {
     var packet = {
-        deviceId: 'box0001',
+        deviceId: deviceId,
         text: message
     };
     sendMessage(packet, MessageType.LOG_MESSAGE);

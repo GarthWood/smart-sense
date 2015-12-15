@@ -47,6 +47,7 @@ app.service('WidgetService', function($q) {
         var deferred = $q.defer();
 
         firebase
+            .child(Lookups.Firebase.Node.Devices)
             .child(widgetId)
             .child(Lookups.Firebase.Node.Properties)
             .child(Lookups.Firebase.Node.Type)
@@ -69,9 +70,10 @@ app.service('WidgetService', function($q) {
      */
     this.registerDataListener = function(widgetId, event, callback) {
 
-        firebase.child(widgetId)
+        firebase.child(Lookups.Firebase.Node.Devices)
+                .child(widgetId)
                 .child(event)
-                .child(Lookups.Firebase.Node.Value)
+                .child(Lookups.Firebase.Node.Value + '1')
                 .on(Lookups.Firebase.Event.Value, callback, onCancelled);
     };
 
@@ -86,9 +88,10 @@ app.service('WidgetService', function($q) {
         var deferred = $q.defer();
 
         firebase
+            .child(Lookups.Firebase.Node.Devices)
             .child(widgetId)
             .child(event)
-            .child(Lookups.Firebase.Node.Value)
+            .child(Lookups.Firebase.Node.Value + '1')
             .set(value, function(error) {
                 if (!error) {
                     deferred.resolve();
@@ -109,9 +112,10 @@ app.service('WidgetService', function($q) {
     this.registerDisconnectHandler = function(widgetId, event, value) {
 
         firebase
+            .child(Lookups.Firebase.Node.Devices)
             .child(widgetId)
             .child(event)
-            .child(Lookups.Firebase.Node.Value)
+            .child(Lookups.Firebase.Node.Value + '1')
             .onDisconnect()
             .set(value);
     };

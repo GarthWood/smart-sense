@@ -31,6 +31,14 @@ function MessageUtility() {
         nextMessageId: function() {
             messageId += 1;
             return messageId;
+        },
+        /**
+         * Convert a float to an int32
+         * @param {Number} float a float
+         * @returns {Number} an integer
+         */
+        floatToInt32: function(float) {
+            return Math.floor(float * 1000);
         }
     }
 }

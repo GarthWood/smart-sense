@@ -41,7 +41,7 @@ function checkForUpgrade() {
 
 function startService() {
     var firebase = new Firebase('https://smartsense.firebaseio.com/'),
-        subscriptionService = new SubscriptionService(),
+        subscriptionService = new SubscriptionService(firebase),
         presenceService = new PresenceService(),
         queryService = new QueryService(firebase);
 

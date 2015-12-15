@@ -14,7 +14,7 @@
     "underscore": "^1.8.3"
   },
   "scripts": {
-    "start": "firebase-udp-bridge.js"
+    "start": "server.js"
   },
   "repository": {
     "type": "git",

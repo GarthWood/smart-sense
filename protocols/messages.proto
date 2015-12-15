@@ -17,6 +17,7 @@ message ServiceMessage {
         NumberValue numberValue = 8;
         SetNumber setNumber = 9;
         LogMessage logMessage = 10;
+        NumberEvent numberEvent = 11;
     }
 }
 
@@ -25,24 +26,20 @@ message ServiceMessage {
  * number and respond with a Pong.
  */
 message Ping {
-    required int32 sequenceNumber = 1;
+    required int32 sequenceNumber = 1; // Client-specified sequence number
 }
 
 /**
  * Reponse to a ping request.
  */
 message Pong {
-    required int32 sequenceNumber = 1;
+    required int32 sequenceNumber = 1; // The sequence number sent in the ping, incremented by one
 }
 
 /**
  * Subscribe to changes on a node value.
  */
 message Subscribe {
-
-    enum EventType {
-        CHANGED = 1;
-    }
 
     required string path = 1; // The path of the firebase node
     required int32 subscriptionId = 2;  // Provided by the caller, used to help them distinguish between multiple subscription requests
@@ -84,6 +81,12 @@ message LogMessage {
     required string text = 2 [(nanopb).max_size = 113];
 }
 
+message NumberEvent {
+    required int32 subscriptionId = 1;
+    required EventType eventType = 2;
+    required int32 value = 3;
+}
+
 message Error {
     enum ErrorCode {
         UNKNOWN_ERROR = 1;
@@ -96,3 +99,11 @@ message Error {
     optional string description = 2;
     optional int32 messageId = 3;
 }
+
+/**
+ * The event type to subscribe to
+ */
+enum EventType {
+    CHANGED = 1;
+}
+

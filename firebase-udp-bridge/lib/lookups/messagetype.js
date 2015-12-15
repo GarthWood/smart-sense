@@ -10,7 +10,8 @@ var MessageType = {
     ERROR: 'error',
     NUMBER_VALUE: 'numberValue',
     SET_NUMBER: 'setNumber',
-    LOG_MESSAGE: 'logMessage'
+    LOG_MESSAGE: 'logMessage',
+    NUMBER_EVENT: 'numberEvent'
 };
 
 module.exports = MessageType;

@@ -9,11 +9,12 @@ var Lookups = {
         },
         Node: {
             Properties: 'properties',
-            InputEvents: 'inputEvents',
-            OutputEvents: 'outputEvents',
+            InputEvents: 'input',
+            OutputEvents: 'output',
             Type: 'type',
             Timestamp: 'timestamp',
-            Value: 'value'
+            Value: 'value',
+            Devices: 'devices'
         },
         Event: {
             ChildAdded: 'child_added',
