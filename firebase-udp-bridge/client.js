@@ -11,7 +11,7 @@ var program = require('commander'),
     ServiceMessage = ProtocolProvider.createServiceMessage(),
     _ = require('underscore');
 
-var serverAddress = '127.0.0.1',
+var serverAddress = '10.4.108.22',
     remotePort = 11000,
     listenPort = remotePort + 1,
     request = 'p',
@@ -111,8 +111,8 @@ function sendSubscribePacket() {
 
 function sendSetNumberPacket() {
     var setNumber = {
-        path: 'box0001/outputEvents/value',
-        value: Math.floor(Math.random() * 1000) / 100
+        path: 'devices/TemperatureBox1/output/value1',
+        value: 26
     };
     sendMessage(setNumber, MessageType.SET_NUMBER);
 }

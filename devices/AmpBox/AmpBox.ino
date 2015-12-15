@@ -69,12 +69,12 @@ void sendValues() {
 
         // temperature
         if (temperature.hasChanged()) {
-            box.sendData(PATH, (int)(temperature.read() * 1000.0));
+            box.sendData(PATH, (int)temperature.read());
         }
 
         // moisture
         if (moisture.hasChanged()) {
-            box.sendData(PATH, (int)(moisture.read() * 1000.0));
+            box.sendData(PATH, (int)moisture.read());
         }
 
         timer = now;
