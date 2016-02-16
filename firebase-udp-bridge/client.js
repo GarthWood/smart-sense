@@ -11,7 +11,7 @@ var program = require('commander'),
     ServiceMessage = ProtocolProvider.createServiceMessage(),
     _ = require('underscore');
 
-var serverAddress = '10.4.108.22',
+var serverAddress = 'devicefub.com',
     remotePort = 11000,
     listenPort = remotePort + 1,
     request = 'p',

@@ -9,7 +9,7 @@ var ProtoBuf = require('protobufjs'),
  */
 function ProtocolProvider() {
 
-    var builder = ProtoBuf.loadProtoFile('./protocols/messages.proto');
+    var builder = ProtoBuf.loadProtoFile('./../protocols/messages.proto');
 
     return {
         createServiceMessage: function() {

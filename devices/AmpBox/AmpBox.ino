@@ -6,11 +6,6 @@
 #include <DNSServer.h>
 #include <WiFiUdp.h>
 
-// nanopb
-#include "pb_common.hpp"
-#include "pb_encode.hpp"
-#include "pb_decode.hpp"
-
 // box specific
 #include <OneWire.h>
 #include "WiFiManager.hpp"
@@ -19,12 +14,12 @@
 #include "Temperature.hpp"
 #include "Moisture.hpp"
 
-// messages
-#include "messages.pb.hpp"
+// protocol
+#include "ss_protocol.h"
 
 
-#define AP_NAME           "TemperatureBox1"
-#define PATH              "devices/TemperatureBox1/output/value1"
+#define AP_NAME           "TemperatureBox2"
+#define PATH              "/devices/TemperatureBox2/output/value1"
 #define SEND_INTERVAL     1000
 
 void onMessage(stMessage& message);

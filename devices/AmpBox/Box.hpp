@@ -1,9 +1,10 @@
 #pragma once
 
-#include "messages.pb.h"
+#include "ss_protocol.h"
 
+//#define HOST_NAME                 "devicefub.com"
 #define HOST_NAME                 "10.4.108.22"
-#define REMOTE_PORT               11000
+#define REMOTE_PORT               21000
 
 #define STATUS_LED_PIN            4
 #define AP_PIN                    5
@@ -65,22 +66,10 @@ public:
     */
     void sendData(const char* path, int value) {
 
-        uint8_t buffer[SetNumber_size];
-        ServiceMessage message;
+        SetIntegerPacket packet;
 
-        memset(buffer, 0, SetNumber_size * sizeof(byte));
-        pb_ostream_t stream = pb_ostream_from_buffer(buffer, SetNumber_size);
-
-        memset(message.payload.setNumber.path, 0, sizeof(message.payload.setNumber.path));
-        strcpy(message.payload.setNumber.path, path);
-        message.payload.setNumber.value = value;
-
-        message.has_messageId = false;
-        message.which_payload = ServiceMessage_setNumber_tag;
-
-        // encode and send the message
-        if (pb_encode(&stream, ServiceMessage_fields, &message)) {
-            _client.sendData(buffer, SetNumber_size);
+        if (createSetIntegerPacket(packet, "", path, value)) {
+            _client.sendData(packet.getBuffer(), packet.getSize());
         }
     }
 
