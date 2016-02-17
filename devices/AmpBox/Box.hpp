@@ -69,7 +69,7 @@ public:
 
         SetIntegerPacket packet("", path, value);
 
-        _client.sendData(packet.getBuffer(), SET_INTEGER_SIZE);
+        _client.sendData(packet.getBuffer(), packet.getSize());
     }
 
     /**

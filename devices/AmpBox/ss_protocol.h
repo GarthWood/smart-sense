@@ -102,6 +102,10 @@ typedef struct _SetInteger {
         return startPointer;
     }
 
+    int getSize() {
+        return SET_INTEGER_SIZE;
+    }
+
     uint8_t buffer[SET_INTEGER_SIZE];
 
     Header header;
