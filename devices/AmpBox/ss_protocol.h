@@ -65,6 +65,7 @@ typedef struct _SetInteger {
 
         memset(sessionId, 0, SESSION_ID_LENGTH);
         memset(path, 0, SHORT_STRING_MAX_LENGTH);
+        memset(buffer, 0, SET_INTEGER_SIZE);
 
         // header
         header.initialise(SetInteger, SET_INTEGER_VERSION);
@@ -83,9 +84,6 @@ typedef struct _SetInteger {
 
         uint8_t* startPointer = buffer;
         uint8_t* modPointer = buffer;
-
-        // clear the buffer
-        memset(buffer, 0, SET_INTEGER_SIZE);
 
         // header
         header.fillBuffer(modPointer);
