@@ -1,9 +1,11 @@
 #ifndef SS_PROTOCOL_H_
 #define SS_PROTOCOL_H_
 
-#define PACKET_START                    0x1C
+#define PACKET_START                    28
 #define SHORT_STRING_MAX_LENGTH         256
 #define SESSION_ID_LENGTH               16
+
+typedef uint8_t ss_buffer;
 
 enum PacketType {
     SetInteger = 10
@@ -12,6 +14,7 @@ enum PacketType {
 /**
   The header definition which all packets will use as their starting characters
  */
+#define HEADER_SIZE (sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint32_t))
 typedef struct _Header {
 
     _Header() {
@@ -24,8 +27,23 @@ typedef struct _Header {
         version = packetVersion;
     }
 
-    int getSize() {
-        return sizeof(start) + sizeof(type) + sizeof(version) + sizeof(length);
+    void fillBuffer(ss_buffer*& buffer) {
+
+        // start
+        memcpy(buffer, &start, sizeof(start));
+        buffer += sizeof(start);
+
+        // type
+        memcpy(buffer, &type, sizeof(type));
+        buffer += sizeof(type);
+
+        // version
+        memcpy(buffer, &version, sizeof(version));
+        buffer += sizeof(version);
+
+        // length
+        memcpy(buffer, &length, sizeof(length));
+        buffer += sizeof(length);
     }
 
     uint16_t start;
@@ -39,7 +57,8 @@ typedef struct _Header {
 /**
   A packet to set an integer value
  */
-#define SET_INTEGER_VERSION 0x01
+#define SET_INTEGER_VERSION 1
+#define SET_INTEGER_SIZE (HEADER_SIZE + SESSION_ID_LENGTH + SHORT_STRING_MAX_LENGTH + sizeof(int32_t))
 typedef struct _SetInteger {
 
     _SetInteger() {
@@ -47,12 +66,28 @@ typedef struct _SetInteger {
         memset(path, 0, SHORT_STRING_MAX_LENGTH);
     }
 
-    int getSize() {
-        return header.getSize() + SESSION_ID_LENGTH + SHORT_STRING_MAX_LENGTH + sizeof(value);
-    }
+    uint8_t* fillBuffer(ss_buffer* buffer) {
 
-    uint8_t* getBuffer() {
-        return reinterpret_cast<uint8_t*>(this);
+        uint8_t* startPointer = buffer;
+
+        // clear the buffer
+        memset(buffer, 0, SET_INTEGER_SIZE);
+
+        // header
+        header.fillBuffer(buffer);
+
+        // session ID
+        memcpy(buffer, sessionId, SESSION_ID_LENGTH);
+        buffer += SESSION_ID_LENGTH;
+
+        // path
+        memcpy(buffer, &path, SHORT_STRING_MAX_LENGTH);
+        buffer += SHORT_STRING_MAX_LENGTH;
+
+        // value
+        memcpy(buffer, &value, sizeof(value));
+
+        return startPointer;
     }
 
     Header header;

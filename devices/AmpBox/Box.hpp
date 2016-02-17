@@ -4,6 +4,7 @@
 
 //#define HOST_NAME                 "devicefub.com"
 #define HOST_NAME                 "10.4.108.22"
+//#define HOST_NAME                 "10.4.108.42"
 #define REMOTE_PORT               21000
 
 #define STATUS_LED_PIN            4
@@ -67,9 +68,10 @@ public:
     void sendData(const char* path, int value) {
 
         SetIntegerPacket packet;
+        ss_buffer buffer[SET_INTEGER_SIZE];
 
         if (createSetIntegerPacket(packet, "", path, value)) {
-            _client.sendData(packet.getBuffer(), packet.getSize());
+            _client.sendData(packet.fillBuffer(buffer), SET_INTEGER_SIZE);
         }
     }
 
