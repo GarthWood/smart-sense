@@ -27,7 +27,7 @@ typedef struct _Header {
         version = packetVersion;
     }
 
-    void fillBuffer(ss_buffer*& buffer) {
+    void fillBuffer(uint8_t*& buffer) {
 
         // start
         memcpy(buffer, &start, sizeof(start));
@@ -61,34 +61,50 @@ typedef struct _Header {
 #define SET_INTEGER_SIZE (HEADER_SIZE + SESSION_ID_LENGTH + SHORT_STRING_MAX_LENGTH + sizeof(int32_t))
 typedef struct _SetInteger {
 
-    _SetInteger() {
+    _SetInteger(const char* packetSessionId, const char* packetPath, int32_t packetValue) {
+
         memset(sessionId, 0, SESSION_ID_LENGTH);
         memset(path, 0, SHORT_STRING_MAX_LENGTH);
+
+        // header
+        header.initialise(SetInteger, SET_INTEGER_VERSION);
+
+        // session ID
+        memcpy(sessionId, packetSessionId, strlen(packetSessionId));
+
+        // path
+        memcpy(path, packetPath, strlen(packetPath));
+
+        // value
+        value = packetValue;
     }
 
-    uint8_t* fillBuffer(ss_buffer* buffer) {
+    uint8_t* getBuffer() {
 
         uint8_t* startPointer = buffer;
+        uint8_t* modPointer = buffer;
 
         // clear the buffer
         memset(buffer, 0, SET_INTEGER_SIZE);
 
         // header
-        header.fillBuffer(buffer);
+        header.fillBuffer(modPointer);
 
         // session ID
-        memcpy(buffer, sessionId, SESSION_ID_LENGTH);
-        buffer += SESSION_ID_LENGTH;
+        memcpy(modPointer, sessionId, SESSION_ID_LENGTH);
+        modPointer += SESSION_ID_LENGTH;
 
         // path
-        memcpy(buffer, &path, SHORT_STRING_MAX_LENGTH);
-        buffer += SHORT_STRING_MAX_LENGTH;
+        memcpy(modPointer, &path, SHORT_STRING_MAX_LENGTH);
+        modPointer += SHORT_STRING_MAX_LENGTH;
 
         // value
-        memcpy(buffer, &value, sizeof(value));
+        memcpy(modPointer, &value, sizeof(value));
 
         return startPointer;
     }
+
+    uint8_t buffer[SET_INTEGER_SIZE];
 
     Header header;
     char sessionId[SESSION_ID_LENGTH];
@@ -96,31 +112,5 @@ typedef struct _SetInteger {
     int32_t value;
 
 } SetIntegerPacket;
-
-/**
-  Helper function to create a SetInteger packet
- */
-bool createSetIntegerPacket(SetIntegerPacket& packet, const char* sessionId, const char* path, int32_t value) {
-
-    int pathLength = strlen(path);
-    bool valid = (pathLength > 0) && (pathLength <= SHORT_STRING_MAX_LENGTH);
-
-    if (valid) {
-
-        // header
-        packet.header.initialise(SetInteger, SET_INTEGER_VERSION);
-
-        // session ID
-        memcpy(packet.sessionId, sessionId, strlen(sessionId));
-
-        // path
-        memcpy(packet.path, path, pathLength);
-
-        // value
-        packet.value = value;
-    }
-
-    return valid;
-}
 
 #endif // SS_PROTOCOL_H_

@@ -67,12 +67,9 @@ public:
     */
     void sendData(const char* path, int value) {
 
-        SetIntegerPacket packet;
-        ss_buffer buffer[SET_INTEGER_SIZE];
+        SetIntegerPacket packet("", path, value);
 
-        if (createSetIntegerPacket(packet, "", path, value)) {
-            _client.sendData(packet.fillBuffer(buffer), SET_INTEGER_SIZE);
-        }
+        _client.sendData(packet.getBuffer(), SET_INTEGER_SIZE);
     }
 
     /**
