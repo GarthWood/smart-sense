@@ -1,12 +1,12 @@
 'use strict';
 
 var SubscriptionEventType = require('./lookups/subscriptioneventtype.js'),
-    ErrorMessage = require('./types/errormessage.js'),
+    ErrorMessage = require('./types/errmsg.js'),
     ErrorCode = require('./lookups/errorcode.js'),
     MessageType = require('./lookups/messagetype.js'),
     FirebaseEventType = require('./lookups/firebaseeventtype.js'),
     MessageUtility = require('./messageutility.js'),
-    q = require('Q')
+    q = require('q')
 
 /**
  * Handles all subscription requests to watch for data changes

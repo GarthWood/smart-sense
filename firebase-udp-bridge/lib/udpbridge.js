@@ -2,11 +2,11 @@
 
 var dgram = require('dgram'),
     colors = require('colors'),
-    q = require('Q'),
+    q = require('q'),
     MessageUtility = require('./messageutility.js'),
     MessageType = require('./lookups/messagetype.js'),
     ErrorCode = require('./lookups/errorcode.js'),
-    ErrorMessage = require('./types/errormessage.js'),
+    ErrorMessage = require('./types/errmsg.js'),
     ResponseMessage = require('./types/responsemessage.js'),
     ProtocolProvider = require('./protocolprovider.js'),
     ServiceMessage = ProtocolProvider.createServiceMessage(),
@@ -41,43 +41,50 @@ function UDPBridge(port,
 
     function onIncomingMessage(incomingBuffer, rInfo) {
 
-        var responsePromise,
-            message = ServiceMessage.decode(incomingBuffer),
-            type = MessageUtility.getMessageType(message),
-            client = Client(rInfo.address, rInfo.port, server);
+        try {
 
-        switch (type) {
-            case MessageType.PING:
-                responsePromise = presenceService.ping(message.ping, client);
-                break;
-            case MessageType.SUBSCRIBE:
-                responsePromise = subscriptionService.subscribe(message.subscribe, client);
-                break;
-            case MessageType.UNSUBSCRIBE:
-                responsePromise = subscriptionService.unsubscribe(message.unsubscribe, client);
-                break;
-            case MessageType.GET:
-                responsePromise = queryService.get(message.get, client);
-                break;
-            case MessageType.SET_NUMBER:
-                responsePromise = queryService.setNumber(message.setNumber, client);
-                break;
-            case MessageType.LOG_MESSAGE:
-                var log = message.logMessage;
-                logDeviceMessage(log.deviceId, log.text);
-                responsePromise = q();
-                break;
-            default:
-                var response = new ResponseMessage(MessageType.ERROR,
-                    new ErrorMessage(ErrorCode.UNKNOWN_MESSAGE_TYPE, type));
-                responsePromise = q.resolve(response);
-        }
+            var responsePromise,
+                message = ServiceMessage.decode(incomingBuffer),
+                type = MessageUtility.getMessageType(message),
+                client = Client(rInfo.address, rInfo.port, server);
 
-        responsePromise.then(function success(response) {
-            if (response) {
-                client.send(response.type, response.payload);
+            console.log('Received ' + type + ' from ' + rInfo.address + ':' + rInfo.port);
+
+            switch (type) {
+                case MessageType.PING:
+                    responsePromise = presenceService.ping(message.ping, client);
+                    break;
+                case MessageType.SUBSCRIBE:
+                    responsePromise = subscriptionService.subscribe(message.subscribe, client);
+                    break;
+                case MessageType.UNSUBSCRIBE:
+                    responsePromise = subscriptionService.unsubscribe(message.unsubscribe, client);
+                    break;
+                case MessageType.GET:
+                    responsePromise = queryService.get(message.get, client);
+                    break;
+                case MessageType.SET_NUMBER:
+                    responsePromise = queryService.setNumber(message.setNumber, client);
+                    break;
+                case MessageType.LOG_MESSAGE:
+                    var log = message.logMessage;
+                    logDeviceMessage(log.deviceId, log.text);
+                    responsePromise = q();
+                    break;
+                default:
+                    var response = new ResponseMessage(MessageType.ERROR,
+                        new ErrorMessage(ErrorCode.UNKNOWN_MESSAGE_TYPE, type));
+                    responsePromise = q.resolve(response);
             }
-        }).done();
+
+            responsePromise.then(function success(response) {
+                if (response) {
+                    client.send(response.type, response.payload);
+                }
+            }).done();
+        } catch (error) {
+            console.log('Bad packet: ' + error);
+        }
     }
 
     function sendMessage(type, message, remotePort, remoteAddress) {
