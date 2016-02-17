@@ -5,8 +5,6 @@
 #define SHORT_STRING_MAX_LENGTH         256
 #define SESSION_ID_LENGTH               16
 
-typedef uint8_t ss_buffer;
-
 enum PacketType {
     SetInteger = 10
 };
@@ -61,57 +59,39 @@ typedef struct _Header {
 #define SET_INTEGER_SIZE (HEADER_SIZE + SESSION_ID_LENGTH + SHORT_STRING_MAX_LENGTH + sizeof(int32_t))
 typedef struct _SetInteger {
 
-    _SetInteger(const char* packetSessionId, const char* packetPath, int32_t packetValue) {
+    _SetInteger(const char* sessionId, const char* path, int32_t value) {
 
-        memset(sessionId, 0, SESSION_ID_LENGTH);
-        memset(path, 0, SHORT_STRING_MAX_LENGTH);
+        uint8_t* pBuffer = buffer;
+
+        // clear the buffer
         memset(buffer, 0, SET_INTEGER_SIZE);
 
         // header
         header.initialise(SetInteger, SET_INTEGER_VERSION);
+        header.fillBuffer(pBuffer);
 
         // session ID
-        memcpy(sessionId, packetSessionId, strlen(packetSessionId));
+        memcpy(pBuffer, sessionId, strlen(sessionId));
+        pBuffer += SESSION_ID_LENGTH;
 
         // path
-        memcpy(path, packetPath, strlen(packetPath));
+        memcpy(pBuffer, path, strlen(path));
+        pBuffer += SHORT_STRING_MAX_LENGTH;
 
         // value
-        value = packetValue;
+        memcpy(pBuffer, &value, sizeof(int32_t));
     }
 
     uint8_t* getBuffer() {
-
-        uint8_t* startPointer = buffer;
-        uint8_t* modPointer = buffer;
-
-        // header
-        header.fillBuffer(modPointer);
-
-        // session ID
-        memcpy(modPointer, sessionId, SESSION_ID_LENGTH);
-        modPointer += SESSION_ID_LENGTH;
-
-        // path
-        memcpy(modPointer, &path, SHORT_STRING_MAX_LENGTH);
-        modPointer += SHORT_STRING_MAX_LENGTH;
-
-        // value
-        memcpy(modPointer, &value, sizeof(value));
-
-        return startPointer;
+        return buffer;
     }
 
     int getSize() {
         return SET_INTEGER_SIZE;
     }
 
-    uint8_t buffer[SET_INTEGER_SIZE];
-
     Header header;
-    char sessionId[SESSION_ID_LENGTH];
-    char path[SHORT_STRING_MAX_LENGTH];
-    int32_t value;
+    uint8_t buffer[SET_INTEGER_SIZE];
 
 } SetIntegerPacket;
 
